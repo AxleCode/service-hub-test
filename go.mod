@@ -3,10 +3,14 @@ module gitlab.com/wit-id/service-hub-test
 go 1.25.5
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
+	github.com/golang-migrate/migrate/v4 v4.19.1
+	github.com/iancoleman/strcase v0.3.0
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/lib/pq v1.11.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.21.0
+	google.golang.org/grpc v1.78.0
 )
 
 require (
@@ -30,4 +34,6 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
+	google.golang.org/protobuf v1.36.10 // indirect
 )

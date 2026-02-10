@@ -10,6 +10,8 @@ import (
 	"gitlab.com/wit-id/service-hub-test/common/httpservice"
 	"gitlab.com/wit-id/service-hub-test/toolkit/config"
 	"gitlab.com/wit-id/service-hub-test/toolkit/echokit"
+
+	checkWeather "gitlab.com/wit-id/service-hub-test/src/check_weather/application"
 )
 
 func RunEchoHTTPService(ctx context.Context, s *httpservice.Service, cfg config.KVStore) {
@@ -29,5 +31,10 @@ func RunEchoHTTPService(ctx context.Context, s *httpservice.Service, cfg config.
 		return c.String(http.StatusOK, "ok")
 	})
 
+	// add route here
+	checkWeather.AddRouteCheckWeather(s, cfg, e)
+
+	// end of route
+	
 	echokit.RunServerWithContext(ctx, e, runtimeCfg)
 }

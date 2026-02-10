@@ -10,6 +10,8 @@ import (
 	"gitlab.com/wit-id/service-hub-test/toolkit/db/postgres"
 	"gitlab.com/wit-id/service-hub-test/toolkit/log"
 	"gitlab.com/wit-id/service-hub-test/toolkit/runtimekit"
+	"google.golang.org/grpc"
+	"gitlab.com/wit-id/service-hub-test/toolkit/grpckit"
 )
 
 func main() {
@@ -41,7 +43,16 @@ func main() {
 	}
 	logger.Set()
 
+	// Initialize HTTP service
 	svc := httpservice.NewService(mainDB, cfg)
+
+	// Run gRPC server
+	grpcSrv := grpc.NewServer()
+	grpcCfg := grpckit.NewRuntimeConfig(cfg, "grpc")
+	grpcCfg.HealthCheckFunc = svc.GetServiceHealth
+	go grpckit.RunWithContext(appContext, grpcSrv, grpcCfg)
+	
+	// Run HTTP server
 	echohttp.RunEchoHTTPService(appContext, svc, cfg)
 }
 
