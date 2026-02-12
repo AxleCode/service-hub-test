@@ -5,12 +5,6 @@ packages:
     queries: "./queries"
     schema: 
     - "./migrations"
-    - "./migrations/crm"
-    - "./migrations/accounting"
-    - "./migrations/booking"
-    - "./migrations/payment"
-    - "./migrations/staah"
-    - "./migrations/powerpro"
     engine: "postgresql"
     emit_json_tags: true
     emit_prepared_queries: false
