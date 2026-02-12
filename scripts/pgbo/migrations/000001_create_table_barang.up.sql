@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS barang (
     kategori VARCHAR(150) NOT NULL,
     deskripsi TEXT,
     harga NUMERIC(15,2) NOT NULL DEFAULT 0,
-    is_deleted VARCHAR(50) NOT NULL DEFAULT FALSE,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
 

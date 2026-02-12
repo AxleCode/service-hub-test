@@ -22,10 +22,12 @@ type Barang struct {
 }
 
 type Inventory struct {
-	Guid      string         `json:"guid"`
-	BarangID  string         `json:"barang_id"`
-	Stok      int32          `json:"stok"`
-	Lokasi    sql.NullString `json:"lokasi"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	Guid       string         `json:"guid"`
+	BarangID   string         `json:"barang_id"`
+	Jumlah     int32          `json:"jumlah"`
+	Keterangan sql.NullString `json:"keterangan"`
+	Status     string         `json:"status"`
+	IsDeleted  bool           `json:"is_deleted"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
 }

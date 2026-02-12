@@ -13,6 +13,7 @@ import (
 
 	checkWeather "gitlab.com/wit-id/service-hub-test/src/check_weather/application"
 	barang "gitlab.com/wit-id/service-hub-test/src/barang/application"
+	inventory "gitlab.com/wit-id/service-hub-test/src/inventory/application"
 )
 
 func RunEchoHTTPService(ctx context.Context, s *httpservice.Service, cfg config.KVStore) {
@@ -35,6 +36,7 @@ func RunEchoHTTPService(ctx context.Context, s *httpservice.Service, cfg config.
 	// add route here
 	checkWeather.AddRouteCheckWeather(s, cfg, e)
 	barang.AddRouteBarang(s, cfg, e)
+	inventory.AddRouteInventory(s, cfg, e)
 
 	// end of route
 	
