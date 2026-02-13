@@ -23,7 +23,7 @@ func (s *CheckWeatherService) GetCheckWeather(ctx context.Context, client http.C
 	}
 
 	query := newReq.URL.Query()
-	query.Add("q", queryparam.Longitude+","+queryparam.Latitude)
+	query.Add("q", queryparam.Latitude+","+queryparam.Longitude)
 	query.Add("key", cfg.GetString("check-weather-api.api-key"))
 	newReq.URL.RawQuery = query.Encode()
 
