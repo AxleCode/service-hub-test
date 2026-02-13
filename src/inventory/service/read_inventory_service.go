@@ -60,3 +60,59 @@ func (s *InventoryService) getTotalListInventory(ctx context.Context, query *sql
 	}
 	return
 }
+
+func (s *InventoryService) CountStockProduct(ctx context.Context, barangID string) (
+	sqlc.CountInventoryStokByBarangIDRow, error) {
+    query := sqlc.New(s.mainDB)
+
+    data, err := query.CountInventoryStokByBarangID(ctx, barangID)
+    if err != nil {
+        log.FromCtx(ctx).Error(err, "failed count stock product")
+        return sqlc.CountInventoryStokByBarangIDRow{}, 
+            errors.WithStack(httpservice.ErrUnknownSource)
+    }
+
+    return data, nil
+}
+
+func (s *InventoryService) CountAllStockProduct(ctx context.Context, request sqlc.ListCountAllInventoryEachProductParams) (
+	listCountAllInventory []sqlc.ListCountAllInventoryEachProductRow, totalData int64, err error) {
+	query := sqlc.New(s.mainDB)
+
+	//Get Total Data
+	totalData, err = s.getTotalCountAllInventory(ctx, query, request)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed get total count all inventory")
+		err = errors.WithStack(httpservice.ErrDataNotFound)
+		return
+	}
+
+	listCountAllInventory, err = query.ListCountAllInventoryEachProduct(ctx, request)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed count all stock product")
+		err = errors.WithStack(httpservice.ErrUnknownSource)
+		return
+	}
+
+	log.FromCtx(ctx).Info("list inventory", "data", listCountAllInventory)
+
+	return
+}
+
+func (s *InventoryService) getTotalCountAllInventory(
+	ctx context.Context,
+	query *sqlc.Queries,
+	request sqlc.ListCountAllInventoryEachProductParams,
+) (int64, error) {
+
+	totalData, err := query.CountListCountAllInventoryEachProduct(
+		ctx,
+		request.NamaBarang, // langsung kirim paramnya
+	)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed get total count all inventory")
+		return 0, errors.WithStack(httpservice.ErrUnknownSource)
+	}
+
+	return totalData, nil
+}

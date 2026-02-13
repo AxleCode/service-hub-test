@@ -1,0 +1,47 @@
+db:
+  type: "postgres"
+  host: "localhost"
+  port: "5432"
+  username: "postgres"
+  password: "1234"
+  schema: "service-hub-test"
+  conn:
+    max-idle: "20"
+    max-lifetime: "10m"
+    keep-alive-interval: "5m"
+    max-open: "100"
+restapi:
+  port: 6969
+  request-timeout: 1000s
+  healthcheck-path: /health/info
+  info-path: /actuator/info
+  shutdown:
+    wait-duration: 1s
+    timeout-duration: 5s
+grpc:
+    port: 8089
+    request-timeout: 10s
+    shutdown-wait-duration: 1s
+    reflection-enabled: false
+log:
+  level: "info"
+  json-enabled: false
+  file:
+    enabled: false
+    path: "./logs/service-hub-test.log"
+    maxsize-mb: 10
+    maxage-days: 7
+    maxbackup-files: 2
+  batch:
+    enabled: false
+    max-lines: 1000
+    interval: 15ms
+app-info:
+  app-name: "Service Hub Test (Local)"
+  version: "1.0.0"
+  build: "1"
+check-weather-api:
+  base-url: "http://api.weatherapi.com/v1/current.json"
+  api-key: "e7ea4b1e66b24064a3a75439261002"
+  max-retry: 3
+  retry-delay-ms: 500

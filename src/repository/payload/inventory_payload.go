@@ -50,6 +50,25 @@ type ListInventoryFilterPayload struct {
 	Status   string `json:"status"`
 }
 
+type UpdateInventoryPayload struct {
+	BarangID  string `json:"barang_id"`
+	Jumlah     int32    `json:"jumlah"`
+	Keterangan string `json:"keterangan"`
+	Status    string `json:"status"`
+}
+
+type ListCountAllInventoryPayload struct {
+	Filter ListCountAllInventoryFilterPayload `json:"filter"`
+	Pagination
+}
+
+type ListCountAllInventoryFilterPayload struct {
+	KodeBarang string `json:"kode_barang"`
+	NamaBarang string `json:"nama_barang"`
+	JumlahStok int32  `json:"jumlah_stok"`
+	Kategori   string `json:"kategori"`
+}
+
 func (p *InsertInventoryPayload) Validate() (err error) {
 	// Validate Payload
 	if _, err = govalidator.ValidateStruct(p); err != nil {
@@ -60,6 +79,15 @@ func (p *InsertInventoryPayload) Validate() (err error) {
 }
 
 func (p *ListInventoryPayload) Validate() (err error) {
+	// Validate Payload
+	if _, err = govalidator.ValidateStruct(p); err != nil {
+		err = errors.Wrapf(httpservice.ErrBadRequest, "bad request: %s", err.Error())
+		return
+	}
+	return
+}
+
+func (p *UpdateInventoryPayload) Validate() (err error) {
 	// Validate Payload
 	if _, err = govalidator.ValidateStruct(p); err != nil {
 		err = errors.Wrapf(httpservice.ErrBadRequest, "bad request: %s", err.Error())
@@ -88,6 +116,15 @@ func (p *ListInventoryFilterPayload) Validate() (err error) {
 	return
 }
 
+func (p *ListCountAllInventoryPayload) Validate() (err error) {
+	// Validate Payload
+	if _, err = govalidator.ValidateStruct(p); err != nil {
+		err = errors.Wrapf(httpservice.ErrBadRequest, "bad request: %s", err.Error())
+		return
+	}
+	return
+}
+
 func (params *ListInventoryPayload) ToEntity() sqlc.ListInventoryParams {
 
 	return sqlc.ListInventoryParams{
@@ -97,6 +134,25 @@ func (params *ListInventoryPayload) ToEntity() sqlc.ListInventoryParams {
 		OrderParam:   makeOrderParam(params.Order, params.Sort),
 		OffsetPages:  makeOffset(params.Limit, params.Offset),
 		LimitData:    limitWithDefault(params.Limit),
+	}
+}
+
+func (p *UpdateInventoryPayload) ToEntity(guid string) sqlc.UpdateInventoryParams {
+	return sqlc.UpdateInventoryParams{
+		Guid:      guid,
+		BarangID:  p.BarangID,
+		Jumlah:     p.Jumlah,
+		Keterangan: sql.NullString{String: p.Keterangan, Valid: true},
+		Status:    p.Status,
+	}
+}
+
+func (p *ListCountAllInventoryPayload) ToEntity() sqlc.ListCountAllInventoryEachProductParams {
+	return sqlc.ListCountAllInventoryEachProductParams{
+		NamaBarang: p.Filter.NamaBarang,
+		OrderParam: makeOrderParam(p.Order, p.Sort),
+		OffsetPages: makeOffset(p.Limit, p.Offset),
+		LimitData: limitWithDefault(p.Limit),
 	}
 }
 
@@ -115,3 +171,37 @@ func ToPayloadListInventory(listData []sqlc.ListInventoryRow) (payload []*ReadIn
 	}
 	return
 }
+
+func ToPayloadInventory(data sqlc.GetOneInventoryRow) (payload *InventoryResponse) {
+	payload = &InventoryResponse{
+		Guid:      data.Guid,
+		BarangID:  data.BarangID,
+		Jumlah:      data.Jumlah,
+		Keterangan: data.Keterangan.String,
+		Status:    data.Status,
+		CreateAt:  data.CreatedAt,
+		UpdateAt:  data.UpdatedAt,
+	}
+	return
+}
+
+func ToPayloadCountAllInventoryEachProduct(listData []sqlc.ListCountAllInventoryEachProductRow,
+	) (payload []*ListCountAllInventoryFilterPayload) {
+
+    payload = make([]*ListCountAllInventoryFilterPayload, len(listData))
+
+    for i, data := range listData {
+        payload[i] = &ListCountAllInventoryFilterPayload{
+            KodeBarang: data.KodeBarang,
+            NamaBarang: data.NamaBarang,
+			Kategori:   data.Kategori,
+			JumlahStok: data.TotalStok,
+        }
+    }
+
+    return
+}
+
+
+
+

@@ -11,6 +11,68 @@ import (
 	"time"
 )
 
+const countInventoryStokByBarangID = `-- name: CountInventoryStokByBarangID :one
+SELECT 
+    b.guid AS barang_id,
+    b.kode_barang,
+    b.nama_barang,
+    b.kategori,
+    COALESCE((
+        SELECT SUM(
+            CASE 
+                WHEN i.status = 'IN'  THEN i.jumlah
+                WHEN i.status = 'OUT' THEN -i.jumlah
+                ELSE 0
+            END
+        )
+        FROM inventory i
+        WHERE i.barang_id = b.guid
+          AND i.is_deleted = FALSE
+    ),0)::int AS total_stok
+FROM barang b
+WHERE b.guid = $1
+`
+
+type CountInventoryStokByBarangIDRow struct {
+	BarangID   string `json:"barang_id"`
+	KodeBarang string `json:"kode_barang"`
+	NamaBarang string `json:"nama_barang"`
+	Kategori   string `json:"kategori"`
+	TotalStok  int32  `json:"total_stok"`
+}
+
+func (q *Queries) CountInventoryStokByBarangID(ctx context.Context, barangID string) (CountInventoryStokByBarangIDRow, error) {
+	row := q.db.QueryRowContext(ctx, countInventoryStokByBarangID, barangID)
+	var i CountInventoryStokByBarangIDRow
+	err := row.Scan(
+		&i.BarangID,
+		&i.KodeBarang,
+		&i.NamaBarang,
+		&i.Kategori,
+		&i.TotalStok,
+	)
+	return i, err
+}
+
+const countListCountAllInventoryEachProduct = `-- name: CountListCountAllInventoryEachProduct :one
+SELECT 
+    COUNT(*) AS total_data
+FROM barang AS b
+WHERE 
+    b.is_deleted = FALSE
+AND (
+    $1::text IS NULL
+    OR b.nama_barang ILIKE '%' || $1::text || '%'
+)
+`
+
+func (q *Queries) CountListCountAllInventoryEachProduct(ctx context.Context, namaBarang string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countListCountAllInventoryEachProduct, namaBarang)
+	var total_data int64
+	err := row.Scan(&total_data)
+	return total_data, err
+}
+
 const countListInventory = `-- name: CountListInventory :one
 SELECT 
     COUNT(*) AS count
@@ -138,6 +200,101 @@ func (q *Queries) InsertInventory(ctx context.Context, arg InsertInventoryParams
 	return i, err
 }
 
+const listCountAllInventoryEachProduct = `-- name: ListCountAllInventoryEachProduct :many
+SELECT 
+    b.guid AS barang_id,
+    b.kode_barang,
+    b.nama_barang,
+    b.kategori,
+    b.deskripsi,
+    b.harga,
+    COALESCE(
+        SUM(
+            CASE 
+                WHEN i.status = 'IN'  THEN i.jumlah
+                WHEN i.status = 'OUT' THEN -i.jumlah
+                ELSE 0
+            END
+        ), 
+    0)::int AS total_stok
+FROM barang AS b
+LEFT JOIN inventory AS i 
+    ON i.barang_id = b.guid
+    AND i.is_deleted = FALSE
+WHERE 
+    b.is_deleted = FALSE
+AND (
+    $1::text IS NULL
+    OR b.nama_barang ILIKE '%' || $1::text || '%'
+)
+GROUP BY 
+    b.guid,
+    b.kode_barang,
+    b.nama_barang,
+    b.kategori,
+    b.deskripsi,
+    b.harga
+ORDER BY
+    CASE WHEN $2 = 'nama_barang ASC'  THEN b.nama_barang END ASC,
+    CASE WHEN $2 = 'nama_barang DESC' THEN b.nama_barang END DESC,
+    b.nama_barang ASC
+LIMIT $4
+OFFSET $3
+`
+
+type ListCountAllInventoryEachProductParams struct {
+	NamaBarang  string      `json:"nama_barang"`
+	OrderParam  interface{} `json:"order_param"`
+	OffsetPages int32       `json:"offset_pages"`
+	LimitData   int32       `json:"limit_data"`
+}
+
+type ListCountAllInventoryEachProductRow struct {
+	BarangID   string         `json:"barang_id"`
+	KodeBarang string         `json:"kode_barang"`
+	NamaBarang string         `json:"nama_barang"`
+	Kategori   string         `json:"kategori"`
+	Deskripsi  sql.NullString `json:"deskripsi"`
+	Harga      string         `json:"harga"`
+	TotalStok  int32          `json:"total_stok"`
+}
+
+func (q *Queries) ListCountAllInventoryEachProduct(ctx context.Context, arg ListCountAllInventoryEachProductParams) ([]ListCountAllInventoryEachProductRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCountAllInventoryEachProduct,
+		arg.NamaBarang,
+		arg.OrderParam,
+		arg.OffsetPages,
+		arg.LimitData,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCountAllInventoryEachProductRow
+	for rows.Next() {
+		var i ListCountAllInventoryEachProductRow
+		if err := rows.Scan(
+			&i.BarangID,
+			&i.KodeBarang,
+			&i.NamaBarang,
+			&i.Kategori,
+			&i.Deskripsi,
+			&i.Harga,
+			&i.TotalStok,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listInventory = `-- name: ListInventory :many
 SELECT 
     guid,
@@ -223,4 +380,73 @@ func (q *Queries) ListInventory(ctx context.Context, arg ListInventoryParams) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateInventory = `-- name: UpdateInventory :one
+UPDATE inventory
+SET
+    barang_id = COALESCE($1, barang_id),
+    jumlah = COALESCE($2, jumlah),
+    keterangan = COALESCE($3, keterangan),
+    status = COALESCE($4, status),
+    updated_at = (now() at time zone 'UTC')::TIMESTAMP
+WHERE guid = $5
+  AND is_deleted = FALSE
+RETURNING inventory.guid, inventory.barang_id, inventory.jumlah, inventory.keterangan, inventory.status, inventory.is_deleted, inventory.created_at, inventory.updated_at
+`
+
+type UpdateInventoryParams struct {
+	BarangID   string         `json:"barang_id"`
+	Jumlah     int32          `json:"jumlah"`
+	Keterangan sql.NullString `json:"keterangan"`
+	Status     string         `json:"status"`
+	Guid       string         `json:"guid"`
+}
+
+func (q *Queries) UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error) {
+	row := q.db.QueryRowContext(ctx, updateInventory,
+		arg.BarangID,
+		arg.Jumlah,
+		arg.Keterangan,
+		arg.Status,
+		arg.Guid,
+	)
+	var i Inventory
+	err := row.Scan(
+		&i.Guid,
+		&i.BarangID,
+		&i.Jumlah,
+		&i.Keterangan,
+		&i.Status,
+		&i.IsDeleted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateStatusInventory = `-- name: UpdateStatusInventory :one
+UPDATE inventory
+SET
+    is_deleted = TRUE,
+    updated_at = (now() at time zone 'UTC')::TIMESTAMP
+WHERE guid = $1
+  AND is_deleted = FALSE
+RETURNING inventory.guid, inventory.barang_id, inventory.jumlah, inventory.keterangan, inventory.status, inventory.is_deleted, inventory.created_at, inventory.updated_at
+`
+
+func (q *Queries) UpdateStatusInventory(ctx context.Context, guid string) (Inventory, error) {
+	row := q.db.QueryRowContext(ctx, updateStatusInventory, guid)
+	var i Inventory
+	err := row.Scan(
+		&i.Guid,
+		&i.BarangID,
+		&i.Jumlah,
+		&i.Keterangan,
+		&i.Status,
+		&i.IsDeleted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

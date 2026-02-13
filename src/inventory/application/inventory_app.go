@@ -39,6 +39,10 @@ func AddRouteInventory(s *httpservice.Service, cfg config.KVStore, e *echo.Echo)
 	inventoryApp.POST("", createInventory(svc, client, cfg))
 	inventoryApp.GET("/detail/:guid", getInventory(svc, client, cfg))
 	inventoryApp.POST("/list", listInventory(svc, client, cfg))
+	inventoryApp.PUT("/:guid", updateInventory(svc))
+	inventoryApp.DELETE("/:guid", deleteInventory(svc))
+	inventoryApp.GET("/count_stock_product/:barang_id", countStockProduct(svc))
+	inventoryApp.POST("/count_all_stock_product", countAllStockProduct(svc))
 }
 
 func createInventory(svc *service.InventoryService, client http.Client, cfg config.KVStore) echo.HandlerFunc {
@@ -99,6 +103,94 @@ func listInventory(svc *service.InventoryService, client http.Client, cfg config
 
 		return httpservice.ResponsePagination(c,
 			payload.ToPayloadListInventory(inventoryData),
+			nil, int(request.Offset),
+			int(request.Limit),
+			int(totalPage),
+			int(totalData))
+	}
+}
+
+func updateInventory(svc *service.InventoryService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		guid := c.Param("guid")
+		if guid == "" {
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+
+		var request payload.UpdateInventoryPayload
+		if err := c.Bind(&request); err != nil {
+			log.FromCtx(c.Request().Context()).Error(err, "failed parse request body")
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+
+		if err := request.Validate(); err != nil {
+			return err
+		}
+
+		inventoryData, err := svc.UpdateInventory(c.Request().Context(), request.ToEntity(guid))
+		if err != nil {
+			return err
+		}
+
+		return httpservice.ResponseData(c, payload.ToPayloadInventory(inventoryData), nil)
+	}
+}
+
+func deleteInventory(svc *service.InventoryService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		guid := c.Param("guid")
+		if guid == "" {
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+		
+		err := svc.DeleteInventory(c.Request().Context(), guid)
+		if err != nil {
+			return err
+		}
+
+		return httpservice.ResponseData(c, nil, nil)
+	}
+}
+
+func countStockProduct(svc *service.InventoryService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		barangID := c.Param("barang_id")
+		if barangID == "" {
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+		
+		countStock, err := svc.CountStockProduct(c.Request().Context(), barangID)
+		if err != nil {
+			return err
+		}
+		
+		return httpservice.ResponseData(c, countStock, nil)
+	}
+}
+
+func countAllStockProduct(svc *service.InventoryService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var request payload.ListCountAllInventoryPayload
+		if err := c.Bind(&request); err != nil {
+			log.FromCtx(c.Request().Context()).Error(err, "failed parse request body")
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+
+		if err := request.Validate(); err != nil {
+			return err 
+		}
+		
+		countStock, totalData, err := svc.CountAllStockProduct(c.Request().Context(), request.ToEntity())
+		if err != nil {
+			log.FromCtx(c.Request().Context()).Error(err, "failed get list count inventory")
+			return errors.WithStack(httpservice.ErrBadRequest)
+		}
+
+		//TOTAL PAGE
+		totalPage := math.Ceil(float64(totalData) / float64(request.Limit))
+
+		return httpservice.ResponsePagination(c,
+			payload.ToPayloadCountAllInventoryEachProduct(countStock),
 			nil, int(request.Offset),
 			int(request.Limit),
 			int(totalPage),
