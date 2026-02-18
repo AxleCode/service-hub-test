@@ -45,8 +45,11 @@ type ListInventoryPayload struct {
 }
 
 type ListInventoryFilterPayload struct {
+	SetBarangID bool   `json:"set_barang_id"`
 	BarangID string `json:"barang_id"`
+	SetJumlah bool   `json:"set_jumlah"`
 	Jumlah   int32    `json:"jumlah"`
+	SetStatus bool   `json:"set_status"`
 	Status   string `json:"status"`
 }
 
@@ -63,7 +66,7 @@ type ListCountAllInventoryPayload struct {
 }
 
 type ListCountAllInventoryFilterPayload struct {
-	KodeBarang string `json:"kode_barang"`
+	SetNamaBarang bool   `json:"set_nama_barang"`
 	NamaBarang string `json:"nama_barang"`
 	JumlahStok int32  `json:"jumlah_stok"`
 	Kategori   string `json:"kategori"`
@@ -128,8 +131,11 @@ func (p *ListCountAllInventoryPayload) Validate() (err error) {
 func (params *ListInventoryPayload) ToEntity() sqlc.ListInventoryParams {
 
 	return sqlc.ListInventoryParams{
+		SetBarangID: params.Filter.SetBarangID,
 		BarangID:    params.Filter.BarangID,
+		SetJumlah:   params.Filter.SetJumlah,
 		Jumlah:    params.Filter.Jumlah,
+		SetStatus:   params.Filter.SetStatus,
 		Status:    params.Filter.Status,
 		OrderParam:   makeOrderParam(params.Order, params.Sort),
 		OffsetPages:  makeOffset(params.Limit, params.Offset),
@@ -149,6 +155,7 @@ func (p *UpdateInventoryPayload) ToEntity(guid string) sqlc.UpdateInventoryParam
 
 func (p *ListCountAllInventoryPayload) ToEntity() sqlc.ListCountAllInventoryEachProductParams {
 	return sqlc.ListCountAllInventoryEachProductParams{
+		SetNamaBarang: p.Filter.SetNamaBarang,
 		NamaBarang: p.Filter.NamaBarang,
 		OrderParam: makeOrderParam(p.Order, p.Sort),
 		OffsetPages: makeOffset(p.Limit, p.Offset),
@@ -192,7 +199,6 @@ func ToPayloadCountAllInventoryEachProduct(listData []sqlc.ListCountAllInventory
 
     for i, data := range listData {
         payload[i] = &ListCountAllInventoryFilterPayload{
-            KodeBarang: data.KodeBarang,
             NamaBarang: data.NamaBarang,
 			Kategori:   data.Kategori,
 			JumlahStok: data.TotalStok,

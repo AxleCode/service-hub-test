@@ -132,10 +132,8 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-AND (
-    @nama_barang::text IS NULL
-    OR b.nama_barang ILIKE '%' || @nama_barang::text || '%'
-)
+AND 
+    (CASE WHEN @set_nama_barang::bool THEN b.nama_barang ILIKE '%' || @nama_barang::text || '%' ELSE TRUE END)
 GROUP BY 
     b.guid,
     b.kode_barang,

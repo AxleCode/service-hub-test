@@ -53,8 +53,10 @@ type ListBarangPayload struct {
 }
 
 type ListBarangFilterPayload struct {
-	Kategori        string   `json:"kategori"`
-	Harga           float32  `json:"harga"`
+	SetKategori bool   `json:"set_kategori"`
+	Kategori    string `json:"kategori"`
+	SetHarga    bool   `json:"set_harga"`
+	Harga       string `json:"harga"`  
 }
 
 type CountListBarangParams struct {
@@ -122,13 +124,10 @@ func(payload *InsertBarangPayload) ToEntity() (data sqlc.InsertBarangParams) {
 }
 
 func (params *ListBarangPayload) ToEntity() sqlc.ListBarangParams {
-	setKategori := params.Filter.Kategori != ""
-	setHarga := params.Filter.Harga != ""
-
 	return sqlc.ListBarangParams{
-		SetKategori:  setKategori,
+		SetKategori:  params.Filter.SetKategori,
 		Kategori:     params.Filter.Kategori,
-		SetHarga:     setHarga,
+		SetHarga:     params.Filter.SetHarga,
 		Harga:        params.Filter.Harga, 
 		OrderParam:   makeOrderParam(params.Order, params.Sort),
 		OffsetPages:  makeOffset(params.Limit, params.Offset),

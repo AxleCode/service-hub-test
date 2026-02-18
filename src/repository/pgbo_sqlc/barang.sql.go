@@ -15,7 +15,7 @@ const countListBarang = `-- name: CountListBarang :one
 SELECT COUNT(*) AS total_data
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN kategori = $2 ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN kategori LIKE $2 ELSE TRUE END)
     AND (CASE WHEN $3::bool THEN harga <= $4 ELSE TRUE END)
     AND is_deleted = FALSE
 `
@@ -152,7 +152,7 @@ SELECT
     updated_at
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN kategori = $2 ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN kategori LIKE $2 ELSE TRUE END)
     AND (CASE WHEN $3::bool THEN harga <= $4 ELSE TRUE END)
 ORDER BY
     (CASE WHEN $5 = 'created_at ASC' THEN created_at END) ASC,

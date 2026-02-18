@@ -223,10 +223,8 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-AND (
-    $1::text IS NULL
-    OR b.nama_barang ILIKE '%' || $1::text || '%'
-)
+AND 
+    (CASE WHEN $1::bool THEN b.nama_barang ILIKE '%' || $2::text || '%' ELSE TRUE END)
 GROUP BY 
     b.guid,
     b.kode_barang,
@@ -235,18 +233,19 @@ GROUP BY
     b.deskripsi,
     b.harga
 ORDER BY
-    CASE WHEN $2 = 'nama_barang ASC'  THEN b.nama_barang END ASC,
-    CASE WHEN $2 = 'nama_barang DESC' THEN b.nama_barang END DESC,
+    CASE WHEN $3 = 'nama_barang ASC'  THEN b.nama_barang END ASC,
+    CASE WHEN $3 = 'nama_barang DESC' THEN b.nama_barang END DESC,
     b.nama_barang ASC
-LIMIT $4
-OFFSET $3
+LIMIT $5
+OFFSET $4
 `
 
 type ListCountAllInventoryEachProductParams struct {
-	NamaBarang  string      `json:"nama_barang"`
-	OrderParam  interface{} `json:"order_param"`
-	OffsetPages int32       `json:"offset_pages"`
-	LimitData   int32       `json:"limit_data"`
+	SetNamaBarang bool        `json:"set_nama_barang"`
+	NamaBarang    string      `json:"nama_barang"`
+	OrderParam    interface{} `json:"order_param"`
+	OffsetPages   int32       `json:"offset_pages"`
+	LimitData     int32       `json:"limit_data"`
 }
 
 type ListCountAllInventoryEachProductRow struct {
@@ -261,6 +260,7 @@ type ListCountAllInventoryEachProductRow struct {
 
 func (q *Queries) ListCountAllInventoryEachProduct(ctx context.Context, arg ListCountAllInventoryEachProductParams) ([]ListCountAllInventoryEachProductRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCountAllInventoryEachProduct,
+		arg.SetNamaBarang,
 		arg.NamaBarang,
 		arg.OrderParam,
 		arg.OffsetPages,

@@ -49,7 +49,7 @@ SELECT
     updated_at
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_kategori::bool THEN kategori = @kategori ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN kategori LIKE @kategori ELSE TRUE END)
     AND (CASE WHEN @set_harga::bool THEN harga <= @harga ELSE TRUE END)
 ORDER BY
     (CASE WHEN @order_param = 'created_at ASC' THEN created_at END) ASC,
@@ -64,7 +64,7 @@ OFFSET @offset_pages;
 SELECT COUNT(*) AS total_data
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_kategori::bool THEN kategori = @kategori ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN kategori LIKE @kategori ELSE TRUE END)
     AND (CASE WHEN @set_harga::bool THEN harga <= @harga ELSE TRUE END)
     AND is_deleted = FALSE;   
 
