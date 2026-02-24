@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS authentication_schema.user
+(
+    guid CHARACTER VARYING NOT NULL,
+    name CHARACTER VARYING(100) NOT NULL,
+    email CHARACTER VARYING(100) NOT NULL UNIQUE,
+    address CHARACTER VARYING(200),
+    phone_number        VARCHAR(255)                NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE
+);
+

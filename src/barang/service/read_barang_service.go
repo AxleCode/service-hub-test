@@ -59,9 +59,13 @@ func (s *BarangService) getTotalListBarang(ctx context.Context, query *sqlc.Quer
 	totalData int64, err error) {
 		requestParam := sqlc.CountListBarangParams{
 			Kategori: request.Kategori,
-			Harga:    request.Harga,
 			SetKategori: request.SetKategori,
-			SetHarga: request.SetHarga,
+			SetKodeBarang: request.SetKodeBarang,
+			KodeBarang: request.KodeBarang,
+			SetNamaBarang: request.SetNamaBarang,
+			NamaBarang: request.NamaBarang,
+			SetGuid: request.SetGuid,
+			Guid: request.Guid,
 		}
 
 	totalData, err = query.CountListBarang(ctx, requestParam)

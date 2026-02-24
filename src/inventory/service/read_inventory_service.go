@@ -49,7 +49,6 @@ func (s *InventoryService) getTotalListInventory(ctx context.Context, query *sql
 	totalData int64, err error) {
 		requestParam := sqlc.CountListInventoryParams{
 		BarangID:    request.BarangID,
-		Jumlah:    request.Jumlah,
 		Status:    request.Status,
 	}
 	totalData, err = query.CountListInventory(ctx, requestParam)
@@ -94,7 +93,7 @@ func (s *InventoryService) CountAllStockProduct(ctx context.Context, request sql
 		return
 	}
 
-	log.FromCtx(ctx).Info("list inventory", "data", listCountAllInventory)
+	// log.FromCtx(ctx).Info("list inventory", "data", listCountAllInventory)
 
 	return
 }

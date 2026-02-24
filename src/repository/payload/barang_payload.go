@@ -41,10 +41,15 @@ type BarangResponse struct {
 }
 
 type ListFilterBarangPayload struct {
+	SetGuid bool   `json:"set_guid"`
+	Guid    string `json:"guid"`
+	SetKodeBarang bool   `json:"set_kode_barang"`
+	KodeBarang string `json:"kode_barang"`
+	SetNamaBarang bool   `json:"set_nama_barang"`
+	NamaBarang string `json:"nama_barang"`
     SetKategori bool   `json:"set_kategori"`
     Kategori    string `json:"kategori"`
-    SetHarga    bool   `json:"set_harga"`
-    Harga       string `json:"harga"`  
+
 }
 
 type ListBarangPayload struct {
@@ -53,10 +58,14 @@ type ListBarangPayload struct {
 }
 
 type ListBarangFilterPayload struct {
-	SetKategori bool   `json:"set_kategori"`
-	Kategori    string `json:"kategori"`
-	SetHarga    bool   `json:"set_harga"`
-	Harga       string `json:"harga"`  
+	SetGuid bool   `json:"set_guid"`
+	Guid    string `json:"guid"`
+	SetKodeBarang bool   `json:"set_kode_barang"`
+	KodeBarang string `json:"kode_barang"`
+	SetNamaBarang bool   `json:"set_nama_barang"`
+	NamaBarang string `json:"nama_barang"`
+    SetKategori bool   `json:"set_kategori"`
+    Kategori    string `json:"kategori"`
 }
 
 type CountListBarangParams struct {
@@ -125,10 +134,23 @@ func(payload *InsertBarangPayload) ToEntity() (data sqlc.InsertBarangParams) {
 
 func (params *ListBarangPayload) ToEntity() sqlc.ListBarangParams {
 	return sqlc.ListBarangParams{
+		SetGuid: params.Filter.SetGuid,
+		Guid:    params.Filter.Guid,
+		SetKodeBarang: params.Filter.SetKodeBarang,
+		KodeBarang: sql.NullString{
+			String: params.Filter.KodeBarang,
+			Valid:  params.Filter.SetKodeBarang,
+		},
+		SetNamaBarang: params.Filter.SetNamaBarang,
+		NamaBarang: sql.NullString{
+			String: params.Filter.NamaBarang,
+			Valid:  params.Filter.SetNamaBarang,
+		},
 		SetKategori:  params.Filter.SetKategori,
-		Kategori:     params.Filter.Kategori,
-		SetHarga:     params.Filter.SetHarga,
-		Harga:        params.Filter.Harga, 
+		Kategori: sql.NullString{
+			String: params.Filter.Kategori,
+			Valid:  params.Filter.SetKategori,
+		},
 		OrderParam:   makeOrderParam(params.Order, params.Sort),
 		OffsetPages:  makeOffset(params.Limit, params.Offset),
 		LimitData:    limitWithDefault(params.Limit),

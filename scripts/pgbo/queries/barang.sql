@@ -49,8 +49,10 @@ SELECT
     updated_at
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_kategori::bool THEN kategori LIKE @kategori ELSE TRUE END)
-    AND (CASE WHEN @set_harga::bool THEN harga <= @harga ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN LOWER(kategori) LIKE LOWER('%' || @kategori || '%')  ELSE TRUE END)
+    AND (CASE WHEN @set_kode_barang::bool THEN LOWER(kode_barang) LIKE LOWER('%' || @kode_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_nama_barang::bool THEN LOWER(nama_barang) LIKE LOWER('%' || @nama_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
 ORDER BY
     (CASE WHEN @order_param = 'created_at ASC' THEN created_at END) ASC,
     (CASE WHEN @order_param = 'created_at DESC' THEN created_at END) DESC,
@@ -64,9 +66,11 @@ OFFSET @offset_pages;
 SELECT COUNT(*) AS total_data
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_kategori::bool THEN kategori LIKE @kategori ELSE TRUE END)
-    AND (CASE WHEN @set_harga::bool THEN harga <= @harga ELSE TRUE END)
-    AND is_deleted = FALSE;   
+    AND (CASE WHEN @set_kategori::bool THEN LOWER(kategori) LIKE LOWER('%' || @kategori || '%')  ELSE TRUE END)
+    AND (CASE WHEN @set_kode_barang::bool THEN LOWER(kode_barang) LIKE LOWER('%' || @kode_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_nama_barang::bool THEN LOWER(nama_barang) LIKE LOWER('%' || @nama_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
+    ;
 
 -- name: UpdateBarang :one
 UPDATE barang

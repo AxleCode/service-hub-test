@@ -78,27 +78,31 @@ SELECT
     COUNT(*) AS count
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN barang_id = $2 ELSE TRUE END)
-    AND (CASE WHEN $3::bool THEN jumlah = $4 ELSE TRUE END)
-    AND (CASE WHEN $5::bool THEN status = $6 ELSE TRUE END)
-    AND is_deleted = FALSE
+    AND (CASE WHEN $1::bool THEN LOWER(barang_id) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(guid) = LOWER($4) ELSE TRUE END)
+    AND (CASE WHEN $5::bool THEN LOWER(keterangan) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
+    AND (CASE WHEN $7::bool THEN LOWER(status) LIKE LOWER('%' || $8 || '%') ELSE TRUE END)
 `
 
 type CountListInventoryParams struct {
-	SetBarangID bool   `json:"set_barang_id"`
-	BarangID    string `json:"barang_id"`
-	SetJumlah   bool   `json:"set_jumlah"`
-	Jumlah      int32  `json:"jumlah"`
-	SetStatus   bool   `json:"set_status"`
-	Status      string `json:"status"`
+	SetBarangID   bool           `json:"set_barang_id"`
+	BarangID      sql.NullString `json:"barang_id"`
+	SetGuid       bool           `json:"set_guid"`
+	Guid          string         `json:"guid"`
+	SetKeterangan bool           `json:"set_keterangan"`
+	Keterangan    sql.NullString `json:"keterangan"`
+	SetStatus     bool           `json:"set_status"`
+	Status        sql.NullString `json:"status"`
 }
 
 func (q *Queries) CountListInventory(ctx context.Context, arg CountListInventoryParams) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countListInventory,
 		arg.SetBarangID,
 		arg.BarangID,
-		arg.SetJumlah,
-		arg.Jumlah,
+		arg.SetGuid,
+		arg.Guid,
+		arg.SetKeterangan,
+		arg.Keterangan,
 		arg.SetStatus,
 		arg.Status,
 	)
@@ -223,8 +227,8 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-AND 
-    (CASE WHEN $1::bool THEN b.nama_barang ILIKE '%' || $2::text || '%' ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN b.nama_barang ILIKE '%' || $2::text || '%' ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN b.kategori ILIKE '%' || $4::text || '%' ELSE TRUE END)
 GROUP BY 
     b.guid,
     b.kode_barang,
@@ -233,16 +237,18 @@ GROUP BY
     b.deskripsi,
     b.harga
 ORDER BY
-    CASE WHEN $3 = 'nama_barang ASC'  THEN b.nama_barang END ASC,
-    CASE WHEN $3 = 'nama_barang DESC' THEN b.nama_barang END DESC,
+    CASE WHEN $5 = 'nama_barang ASC'  THEN b.nama_barang END ASC,
+    CASE WHEN $5 = 'nama_barang DESC' THEN b.nama_barang END DESC,
     b.nama_barang ASC
-LIMIT $5
-OFFSET $4
+LIMIT $7
+OFFSET $6
 `
 
 type ListCountAllInventoryEachProductParams struct {
 	SetNamaBarang bool        `json:"set_nama_barang"`
 	NamaBarang    string      `json:"nama_barang"`
+	SetKategori   bool        `json:"set_kategori"`
+	Kategori      string      `json:"kategori"`
 	OrderParam    interface{} `json:"order_param"`
 	OffsetPages   int32       `json:"offset_pages"`
 	LimitData     int32       `json:"limit_data"`
@@ -262,6 +268,8 @@ func (q *Queries) ListCountAllInventoryEachProduct(ctx context.Context, arg List
 	rows, err := q.db.QueryContext(ctx, listCountAllInventoryEachProduct,
 		arg.SetNamaBarang,
 		arg.NamaBarang,
+		arg.SetKategori,
+		arg.Kategori,
 		arg.OrderParam,
 		arg.OffsetPages,
 		arg.LimitData,
@@ -306,29 +314,27 @@ SELECT
     updated_at
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN barang_id = $2 ELSE TRUE END)
-    AND (CASE WHEN $3::bool THEN jumlah = $4 ELSE TRUE END)
-    AND (CASE WHEN $5::bool THEN status = $6 ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN LOWER(barang_id) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(guid) = LOWER($4) ELSE TRUE END)
+    AND (CASE WHEN $5::bool THEN LOWER(status) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
 ORDER BY
     (CASE WHEN $7 = 'created_at ASC' THEN created_at END) ASC,
     (CASE WHEN $7 = 'created_at DESC' THEN created_at END) DESC,
-    (CASE WHEN $7 = 'jumlah ASC' THEN jumlah END) ASC,
-    (CASE WHEN $7 = 'jumlah DESC' THEN jumlah END) DESC,
     created_at DESC
 LIMIT $9
 OFFSET $8
 `
 
 type ListInventoryParams struct {
-	SetBarangID bool        `json:"set_barang_id"`
-	BarangID    string      `json:"barang_id"`
-	SetJumlah   bool        `json:"set_jumlah"`
-	Jumlah      int32       `json:"jumlah"`
-	SetStatus   bool        `json:"set_status"`
-	Status      string      `json:"status"`
-	OrderParam  interface{} `json:"order_param"`
-	OffsetPages int32       `json:"offset_pages"`
-	LimitData   int32       `json:"limit_data"`
+	SetBarangID bool           `json:"set_barang_id"`
+	BarangID    sql.NullString `json:"barang_id"`
+	SetGuid     bool           `json:"set_guid"`
+	Guid        string         `json:"guid"`
+	SetStatus   bool           `json:"set_status"`
+	Status      sql.NullString `json:"status"`
+	OrderParam  interface{}    `json:"order_param"`
+	OffsetPages int32          `json:"offset_pages"`
+	LimitData   int32          `json:"limit_data"`
 }
 
 type ListInventoryRow struct {
@@ -345,8 +351,8 @@ func (q *Queries) ListInventory(ctx context.Context, arg ListInventoryParams) ([
 	rows, err := q.db.QueryContext(ctx, listInventory,
 		arg.SetBarangID,
 		arg.BarangID,
-		arg.SetJumlah,
-		arg.Jumlah,
+		arg.SetGuid,
+		arg.Guid,
 		arg.SetStatus,
 		arg.Status,
 		arg.OrderParam,

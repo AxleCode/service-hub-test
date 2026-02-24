@@ -15,24 +15,33 @@ const countListBarang = `-- name: CountListBarang :one
 SELECT COUNT(*) AS total_data
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN kategori LIKE $2 ELSE TRUE END)
-    AND (CASE WHEN $3::bool THEN harga <= $4 ELSE TRUE END)
-    AND is_deleted = FALSE
+    AND (CASE WHEN $1::bool THEN LOWER(kategori) LIKE LOWER('%' || $2 || '%')  ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(kode_barang) LIKE LOWER('%' || $4 || '%') ELSE TRUE END)
+    AND (CASE WHEN $5::bool THEN LOWER(nama_barang) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
+    AND (CASE WHEN $7::bool THEN LOWER(guid) = LOWER($8) ELSE TRUE END)
 `
 
 type CountListBarangParams struct {
-	SetKategori bool   `json:"set_kategori"`
-	Kategori    string `json:"kategori"`
-	SetHarga    bool   `json:"set_harga"`
-	Harga       string `json:"harga"`
+	SetKategori   bool           `json:"set_kategori"`
+	Kategori      sql.NullString `json:"kategori"`
+	SetKodeBarang bool           `json:"set_kode_barang"`
+	KodeBarang    sql.NullString `json:"kode_barang"`
+	SetNamaBarang bool           `json:"set_nama_barang"`
+	NamaBarang    sql.NullString `json:"nama_barang"`
+	SetGuid       bool           `json:"set_guid"`
+	Guid          string         `json:"guid"`
 }
 
 func (q *Queries) CountListBarang(ctx context.Context, arg CountListBarangParams) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countListBarang,
 		arg.SetKategori,
 		arg.Kategori,
-		arg.SetHarga,
-		arg.Harga,
+		arg.SetKodeBarang,
+		arg.KodeBarang,
+		arg.SetNamaBarang,
+		arg.NamaBarang,
+		arg.SetGuid,
+		arg.Guid,
 	)
 	var total_data int64
 	err := row.Scan(&total_data)
@@ -152,26 +161,32 @@ SELECT
     updated_at
 FROM barang
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN kategori LIKE $2 ELSE TRUE END)
-    AND (CASE WHEN $3::bool THEN harga <= $4 ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN LOWER(kategori) LIKE LOWER('%' || $2 || '%')  ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(kode_barang) LIKE LOWER('%' || $4 || '%') ELSE TRUE END)
+    AND (CASE WHEN $5::bool THEN LOWER(nama_barang) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
+    AND (CASE WHEN $7::bool THEN LOWER(guid) = LOWER($8) ELSE TRUE END)
 ORDER BY
-    (CASE WHEN $5 = 'created_at ASC' THEN created_at END) ASC,
-    (CASE WHEN $5 = 'created_at DESC' THEN created_at END) DESC,
-    (CASE WHEN $5 = 'harga ASC' THEN harga END) ASC,
-    (CASE WHEN $5 = 'harga DESC' THEN harga END) DESC,
+    (CASE WHEN $9 = 'created_at ASC' THEN created_at END) ASC,
+    (CASE WHEN $9 = 'created_at DESC' THEN created_at END) DESC,
+    (CASE WHEN $9 = 'harga ASC' THEN harga END) ASC,
+    (CASE WHEN $9 = 'harga DESC' THEN harga END) DESC,
     created_at DESC
-LIMIT $7
-OFFSET $6
+LIMIT $11
+OFFSET $10
 `
 
 type ListBarangParams struct {
-	SetKategori bool        `json:"set_kategori"`
-	Kategori    string      `json:"kategori"`
-	SetHarga    bool        `json:"set_harga"`
-	Harga       string      `json:"harga"`
-	OrderParam  interface{} `json:"order_param"`
-	OffsetPages int32       `json:"offset_pages"`
-	LimitData   int32       `json:"limit_data"`
+	SetKategori   bool           `json:"set_kategori"`
+	Kategori      sql.NullString `json:"kategori"`
+	SetKodeBarang bool           `json:"set_kode_barang"`
+	KodeBarang    sql.NullString `json:"kode_barang"`
+	SetNamaBarang bool           `json:"set_nama_barang"`
+	NamaBarang    sql.NullString `json:"nama_barang"`
+	SetGuid       bool           `json:"set_guid"`
+	Guid          string         `json:"guid"`
+	OrderParam    interface{}    `json:"order_param"`
+	OffsetPages   int32          `json:"offset_pages"`
+	LimitData     int32          `json:"limit_data"`
 }
 
 type ListBarangRow struct {
@@ -189,8 +204,12 @@ func (q *Queries) ListBarang(ctx context.Context, arg ListBarangParams) ([]ListB
 	rows, err := q.db.QueryContext(ctx, listBarang,
 		arg.SetKategori,
 		arg.Kategori,
-		arg.SetHarga,
-		arg.Harga,
+		arg.SetKodeBarang,
+		arg.KodeBarang,
+		arg.SetNamaBarang,
+		arg.NamaBarang,
+		arg.SetGuid,
+		arg.Guid,
 		arg.OrderParam,
 		arg.OffsetPages,
 		arg.LimitData,

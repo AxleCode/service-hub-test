@@ -45,14 +45,12 @@ SELECT
     updated_at
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_barang_id::bool THEN barang_id = @barang_id ELSE TRUE END)
-    AND (CASE WHEN @set_jumlah::bool THEN jumlah = @jumlah ELSE TRUE END)
-    AND (CASE WHEN @set_status::bool THEN status = @status ELSE TRUE END)
+    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) LIKE LOWER('%' || @barang_id || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
+    AND (CASE WHEN @set_status::bool THEN LOWER(status) LIKE LOWER('%' || @status || '%') ELSE TRUE END)
 ORDER BY
     (CASE WHEN @order_param = 'created_at ASC' THEN created_at END) ASC,
     (CASE WHEN @order_param = 'created_at DESC' THEN created_at END) DESC,
-    (CASE WHEN @order_param = 'jumlah ASC' THEN jumlah END) ASC,
-    (CASE WHEN @order_param = 'jumlah DESC' THEN jumlah END) DESC,
     created_at DESC
 LIMIT @limit_data
 OFFSET @offset_pages;
@@ -62,10 +60,11 @@ SELECT
     COUNT(*) AS count
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_barang_id::bool THEN barang_id = @barang_id ELSE TRUE END)
-    AND (CASE WHEN @set_jumlah::bool THEN jumlah = @jumlah ELSE TRUE END)
-    AND (CASE WHEN @set_status::bool THEN status = @status ELSE TRUE END)
-    AND is_deleted = FALSE;
+    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) LIKE LOWER('%' || @barang_id || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
+    AND (CASE WHEN @set_keterangan::bool THEN LOWER(keterangan) LIKE LOWER('%' || @keterangan || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_status::bool THEN LOWER(status) LIKE LOWER('%' || @status || '%') ELSE TRUE END)
+;
 
 -- name: UpdateInventory :one
 UPDATE inventory
@@ -132,8 +131,8 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-AND 
-    (CASE WHEN @set_nama_barang::bool THEN b.nama_barang ILIKE '%' || @nama_barang::text || '%' ELSE TRUE END)
+    AND (CASE WHEN @set_nama_barang::bool THEN b.nama_barang ILIKE '%' || @nama_barang::text || '%' ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN b.kategori ILIKE '%' || @kategori::text || '%' ELSE TRUE END)
 GROUP BY 
     b.guid,
     b.kode_barang,

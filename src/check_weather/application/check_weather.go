@@ -11,10 +11,13 @@ import (
 	"gitlab.com/wit-id/service-hub-test/src/repository/payload"
 	"gitlab.com/wit-id/service-hub-test/toolkit/log"
 	"github.com/pkg/errors"
+	"gitlab.com/wit-id/service-hub-test/src/middleware"
+
 )
 
 func AddRouteCheckWeather(s *httpservice.Service, cfg config.KVStore, e *echo.Echo) {
 	svc := service.NewCheckWeatherService(s.GetDB(), cfg)
+	mddw := middleware.NewEnsureToken(s.GetDB(), cfg)
 
 	checkWeatherApp := e.Group("/check-weather")
 
@@ -34,6 +37,8 @@ func AddRouteCheckWeather(s *httpservice.Service, cfg config.KVStore, e *echo.Ec
 
 		client.Transport = transport
 	}
+
+	checkWeatherApp.Use(mddw.ValidateToken)
 
 	checkWeatherApp.GET("/info", GetCheckWeather(svc, client, cfg))
 }

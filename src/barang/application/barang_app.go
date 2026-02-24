@@ -1,14 +1,15 @@
 package application
 
 import (
+	"math"
 	"net/http"
 	"net/url"
-	"math"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gitlab.com/wit-id/service-hub-test/common/httpservice"
 	"gitlab.com/wit-id/service-hub-test/src/barang/service"
+	"gitlab.com/wit-id/service-hub-test/src/middleware"
 	"gitlab.com/wit-id/service-hub-test/src/repository/payload"
 	"gitlab.com/wit-id/service-hub-test/toolkit/config"
 	"gitlab.com/wit-id/service-hub-test/toolkit/log"
@@ -16,6 +17,8 @@ import (
 
 func AddRouteBarang(s *httpservice.Service, cfg config.KVStore, e *echo.Echo){
 	svc := service.NewBarangService(s.GetDB(), cfg)
+
+	mddw := middleware.NewEnsureToken(s.GetDB(), cfg)
 
 	barangApp := e.Group("/barang")
 
@@ -35,6 +38,11 @@ func AddRouteBarang(s *httpservice.Service, cfg config.KVStore, e *echo.Echo){
 
 		client.Transport = transport
 	}
+
+	//untuk validasi token
+	barangApp.Use(mddw.ValidateToken)
+	//untuk validasi login
+	barangApp.Use(mddw.ValidateUserLogin)
 
 	barangApp.POST("", createBarang(svc, client, cfg))
 	barangApp.GET("/detail/:guid", getBarang(svc, client, cfg))

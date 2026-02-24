@@ -12,10 +12,12 @@ import (
 	"gitlab.com/wit-id/service-hub-test/toolkit/config"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/wit-id/service-hub-test/toolkit/log"
+	"gitlab.com/wit-id/service-hub-test/src/middleware"
 )
 
 func AddRouteInventory(s *httpservice.Service, cfg config.KVStore, e *echo.Echo){
 	svc := service.NewInventoryService(s.GetDB(), cfg)
+	mddw := middleware.NewEnsureToken(s.GetDB(), cfg)
 
 	inventoryApp := e.Group("/inventory")
 
@@ -35,6 +37,8 @@ func AddRouteInventory(s *httpservice.Service, cfg config.KVStore, e *echo.Echo)
 
 		client.Transport = transport
 	}
+
+	inventoryApp.Use(mddw.ValidateToken)
 
 	inventoryApp.POST("", createInventory(svc, client, cfg))
 	inventoryApp.GET("/detail/:guid", getInventory(svc, client, cfg))

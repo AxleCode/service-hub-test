@@ -9,6 +9,57 @@ import (
 	"time"
 )
 
+type AuthenticationSchemaAppKey struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
+}
+
+type AuthenticationSchemaAuthToken struct {
+	ID                  sql.NullInt64  `json:"id"`
+	Name                string         `json:"name"`
+	DeviceID            string         `json:"device_id"`
+	DeviceType          string         `json:"device_type"`
+	Token               string         `json:"token"`
+	TokenExpired        time.Time      `json:"token_expired"`
+	RefreshToken        string         `json:"refresh_token"`
+	RefreshTokenExpired time.Time      `json:"refresh_token_expired"`
+	IsLogin             bool           `json:"is_login"`
+	UserLogin           sql.NullString `json:"user_login"`
+	IpAddress           sql.NullString `json:"ip_address"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           sql.NullTime   `json:"updated_at"`
+}
+
+type AuthenticationSchemaAuthentication struct {
+	Guid                 string         `json:"guid"`
+	ID                   sql.NullInt64  `json:"id"`
+	UserGuid             sql.NullString `json:"user_guid"`
+	Username             string         `json:"username"`
+	Password             string         `json:"password"`
+	Salt                 sql.NullString `json:"salt"`
+	ForgotPasswordToken  sql.NullString `json:"forgot_password_token"`
+	ForgotPasswordExpiry sql.NullTime   `json:"forgot_password_expiry"`
+	IsActive             bool           `json:"is_active"`
+	LastLogin            sql.NullTime   `json:"last_login"`
+	FcmToken             sql.NullString `json:"fcm_token"`
+	Status               string         `json:"status"`
+	CreatedAt            sql.NullTime   `json:"created_at"`
+	CreatedBy            string         `json:"created_by"`
+	UpdatedAt            sql.NullTime   `json:"updated_at"`
+	UpdatedBy            sql.NullString `json:"updated_by"`
+}
+
+type AuthenticationSchemaUser struct {
+	Guid        string         `json:"guid"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	Address     sql.NullString `json:"address"`
+	PhoneNumber string         `json:"phone_number"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   sql.NullTime   `json:"updated_at"`
+}
+
 type Barang struct {
 	Guid       string         `json:"guid"`
 	KodeBarang string         `json:"kode_barang"`
