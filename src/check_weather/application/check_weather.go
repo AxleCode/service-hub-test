@@ -43,7 +43,7 @@ func AddRouteCheckWeather(s *httpservice.Service, cfg config.KVStore, e *echo.Ec
 	//untuk validasi login
 	checkWeatherApp.Use(mddw.ValidateUserLogin)
 
-	checkWeatherApp.GET("/info", GetCheckWeather(svc, client, cfg))
+	checkWeatherApp.POST("/info", GetCheckWeather(svc, client, cfg))
 }
 
 func GetCheckWeather(svc *service.CheckWeatherService, client http.Client, cfg config.KVStore) echo.HandlerFunc {

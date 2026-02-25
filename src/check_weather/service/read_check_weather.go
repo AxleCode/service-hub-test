@@ -28,7 +28,11 @@ func (s *CheckWeatherService) GetCheckWeather(ctx context.Context, client http.C
 	newReq.URL.RawQuery = query.Encode()
 
 	// log.FromCtx(context.Background()).Info("Sending request to check weather api with query: %s", newReq.URL.RawQuery)
-
+	log.FromCtx(ctx).Info("check-weather payload",
+		"latitude", queryparam.Latitude,
+		"longitude", queryparam.Longitude,
+		"q", queryparam.Latitude+","+queryparam.Longitude,
+	)
 	var response *http.Response
 	maxRetries := cfg.GetInt("check-weather-api.max-retry")
 
@@ -47,12 +51,13 @@ func (s *CheckWeatherService) GetCheckWeather(ctx context.Context, client http.C
 		}
 
 		// Log and retry if status code is not 200
-		log.FromCtx(ctx).Info("Request failed with status code %d, retrying (%d/%d)", response.StatusCode, i+1, maxRetries)
-		if i == maxRetries-1 {
-			err = errors.New("maximum retries reached")
-			log.FromCtx(ctx).Error(err, "failed request to check weather api after retries")
-			return
-		}
+		// log.FromCtx(ctx).Info(
+		// 	"Request failed, retrying",
+		// 	"status_code", response.StatusCode,
+		// 	"retry", i+1,
+		// 	"max_retries", maxRetries,
+		// )
+		
 	}
 
 	body, err := io.ReadAll(response.Body)
