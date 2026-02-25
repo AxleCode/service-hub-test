@@ -38,7 +38,10 @@ func AddRouteCheckWeather(s *httpservice.Service, cfg config.KVStore, e *echo.Ec
 		client.Transport = transport
 	}
 
+	//untuk validasi token
 	checkWeatherApp.Use(mddw.ValidateToken)
+	//untuk validasi login
+	checkWeatherApp.Use(mddw.ValidateUserLogin)
 
 	checkWeatherApp.GET("/info", GetCheckWeather(svc, client, cfg))
 }

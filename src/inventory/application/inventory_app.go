@@ -38,7 +38,10 @@ func AddRouteInventory(s *httpservice.Service, cfg config.KVStore, e *echo.Echo)
 		client.Transport = transport
 	}
 
+	//untuk validasi token
 	inventoryApp.Use(mddw.ValidateToken)
+	//untuk validasi login
+	inventoryApp.Use(mddw.ValidateUserLogin)
 
 	inventoryApp.POST("", createInventory(svc, client, cfg))
 	inventoryApp.GET("/detail/:guid", getInventory(svc, client, cfg))

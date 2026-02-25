@@ -24,8 +24,9 @@ func RunEchoHTTPService(ctx context.Context, s *httpservice.Service, cfg config.
 	e.Use(handleLanguage)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, constants.DefaultAllowHeaderAuthorization},
+		AllowCredentials: true,
+		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, constants.DefaultAllowHeaderToken, constants.DefaultAllowHeaderRefreshToken, constants.DefaultAllowHeaderAuthorization},
 	}))
 
 	runtimeCfg := echokit.NewRuntimeConfig(cfg, "restapi")
