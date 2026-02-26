@@ -142,9 +142,7 @@ func (params *ListInventoryPayload) ToEntity() sqlc.ListInventoryParams {
 		SetGuid: params.Filter.SetGuid,
 		Guid:    params.Filter.Guid,
 		SetBarangID: params.Filter.SetBarangID,
-		BarangID:    sql.NullString{
-			String: params.Filter.BarangID,
-			Valid:  params.Filter.BarangID != "",},
+		BarangID:    params.Filter.BarangID,
 		SetStatus:   params.Filter.SetStatus,
 		Status: sql.NullString{
 			String: params.Filter.Status,
@@ -168,7 +166,16 @@ func (p *UpdateInventoryPayload) ToEntity(guid string) sqlc.UpdateInventoryParam
 
 func (p *ListCountAllInventoryPayload) ToEntity() sqlc.ListCountAllInventoryEachProductParams {
 	return sqlc.ListCountAllInventoryEachProductParams{
-		NamaBarang: p.Filter.NamaBarang,
+		SetNamaBarang: p.Filter.SetNamaBarang,
+		NamaBarang: sql.NullString{
+			String: p.Filter.NamaBarang,
+			Valid: true,
+		},
+		SetKategori: p.Filter.SetKategori,
+		Kategori: sql.NullString{
+			String: p.Filter.Kategori,
+			Valid: true,
+		},
 		OrderParam: makeOrderParam(p.Order, p.Sort),
 		OffsetPages: makeOffset(p.Limit, p.Offset),
 		LimitData: limitWithDefault(p.Limit),

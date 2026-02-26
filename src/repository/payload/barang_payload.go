@@ -2,7 +2,6 @@ package payload
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 	
 	"github.com/asaskevich/govalidator"
@@ -18,7 +17,7 @@ type ReadBarang struct {
 	NamaBarang string `json:"nama_barang"`
 	Deskripsi  string `json:"deskripsi"`
 	Kategori   string `json:"kategori"`
-	Harga      string `json:"harga"`
+	Harga      int32 `json:"harga"`
 	CreateAt   time.Time `json:"created_at"`
 	UpdateAt   time.Time `json:"updated_at"`
 }
@@ -28,7 +27,7 @@ type InsertBarangPayload struct {
 	NamaBarang string `json:"nama_barang"`
 	Kategori   string `json:"kategori"`
 	Deskripsi  string `json:"deskripsi"`
-	Harga      int    `json:"harga"`
+	Harga      int32    `json:"harga"`
 }
 
 type BarangResponse struct {
@@ -37,7 +36,7 @@ type BarangResponse struct {
 	NamaBarang string `json:"nama_barang"`
 	Kategori   string `json:"kategori"`
 	Deskripsi  string `json:"deskripsi"`
-	Harga      string `json:"harga"`
+	Harga      int32 `json:"harga"`
 }
 
 type ListFilterBarangPayload struct {
@@ -78,7 +77,7 @@ type UpdateBarangPayload struct {
 	NamaBarang string `json:"nama_barang"`
 	Kategori   string `json:"kategori"`
 	Deskripsi  string `json:"deskripsi"`
-	Harga      int    `json:"harga"`
+	Harga      int32    `json:"harga"`
 }
 
 func (p *InsertBarangPayload) Validate() (err error) {
@@ -127,7 +126,7 @@ func(payload *InsertBarangPayload) ToEntity() (data sqlc.InsertBarangParams) {
 			Valid:  payload.Deskripsi != "",
 		},
 		Kategori: payload.Kategori,
-		Harga: strconv.Itoa(payload.Harga),
+		Harga: payload.Harga,
 	}
 	return
 }
@@ -201,7 +200,7 @@ func (p *UpdateBarangPayload) ToEntity(guid string) (data sqlc.UpdateBarangParam
 			Valid:  p.Deskripsi != "",
 		},
 		Kategori: p.Kategori,
-		Harga: strconv.Itoa(p.Harga),
+		Harga: p.Harga,
 	}
 	return
 }

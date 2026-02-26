@@ -45,7 +45,7 @@ SELECT
     updated_at
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) LIKE LOWER('%' || @barang_id || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) = LOWER(@barang_id) ELSE TRUE END)
     AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
     AND (CASE WHEN @set_status::bool THEN LOWER(status) LIKE LOWER('%' || @status || '%') ELSE TRUE END)
 ORDER BY
@@ -60,7 +60,7 @@ SELECT
     COUNT(*) AS count
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) LIKE LOWER('%' || @barang_id || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_barang_id::bool THEN LOWER(barang_id) = LOWER(@barang_id) ELSE TRUE END)
     AND (CASE WHEN @set_guid::bool THEN LOWER(guid) = LOWER(@guid) ELSE TRUE END)
     AND (CASE WHEN @set_keterangan::bool THEN LOWER(keterangan) LIKE LOWER('%' || @keterangan || '%') ELSE TRUE END)
     AND (CASE WHEN @set_status::bool THEN LOWER(status) LIKE LOWER('%' || @status || '%') ELSE TRUE END)
@@ -131,8 +131,9 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-    AND (CASE WHEN @set_nama_barang::bool THEN b.nama_barang ILIKE '%' || @nama_barang::text || '%' ELSE TRUE END)
-    AND (CASE WHEN @set_kategori::bool THEN b.kategori ILIKE '%' || @kategori::text || '%' ELSE TRUE END)
+    AND (CASE WHEN @set_nama_barang::bool THEN LOWER(nama_barang) LIKE LOWER('%' || @nama_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN LOWER(kategori) LIKE LOWER('%' || @kategori || '%') ELSE TRUE END)
+
 GROUP BY 
     b.guid,
     b.kode_barang,
@@ -153,7 +154,5 @@ SELECT
 FROM barang AS b
 WHERE 
     b.is_deleted = FALSE
-AND (
-    @nama_barang::text IS NULL
-    OR b.nama_barang ILIKE '%' || @nama_barang::text || '%'
-);
+    AND (CASE WHEN @set_nama_barang::bool THEN LOWER(nama_barang) LIKE LOWER('%' || @nama_barang || '%') ELSE TRUE END)
+    AND (CASE WHEN @set_kategori::bool THEN LOWER(kategori) LIKE LOWER('%' || @kategori || '%') ELSE TRUE END);

@@ -69,7 +69,7 @@ func createBarang(svc *service.BarangService, client http.Client, cfg config.KVS
 			return err
 		}
 
-		return httpservice.ResponseData(c, data, nil)
+		return httpservice.ResponseData(c, payload.ToPayloadBarang(data), nil)
 	}
 }
 
@@ -82,7 +82,7 @@ func getBarang(svc *service.BarangService, client http.Client, cfg config.KVStor
 			return err
 		}
 
-		return httpservice.ResponseData(c, barangData, nil)
+		return httpservice.ResponseData(c, payload.ToPayloadBarang(barangData), nil)
 	}
 }
 

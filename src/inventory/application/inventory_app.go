@@ -70,7 +70,7 @@ func createInventory(svc *service.InventoryService, client http.Client, cfg conf
 			return err
 		}
 
-		return httpservice.ResponseData(c, data, nil)
+		return httpservice.ResponseData(c, payload.ToPayloadInventory(data), nil)
 	}
 }
 
@@ -83,7 +83,7 @@ func getInventory(svc *service.InventoryService, client http.Client, cfg config.
 			return err
 		}
 
-		return httpservice.ResponseData(c, data, nil)
+		return httpservice.ResponseData(c, payload.ToPayloadInventory(data), nil)
 	}
 }
 
@@ -177,6 +177,7 @@ func countStockProduct(svc *service.InventoryService) echo.HandlerFunc {
 
 func countAllStockProduct(svc *service.InventoryService) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		
 		var request payload.ListCountAllInventoryPayload
 		if err := c.Bind(&request); err != nil {
 			log.FromCtx(c.Request().Context()).Error(err, "failed parse request body")
@@ -186,6 +187,7 @@ func countAllStockProduct(svc *service.InventoryService) echo.HandlerFunc {
 		if err := request.Validate(); err != nil {
 			return err 
 		}
+		
 		
 		countStock, totalData, err := svc.CountAllStockProduct(c.Request().Context(), request.ToEntity())
 		if err != nil {

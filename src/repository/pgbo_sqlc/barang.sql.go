@@ -69,7 +69,7 @@ type GetOneBarangRow struct {
 	NamaBarang string         `json:"nama_barang"`
 	Kategori   string         `json:"kategori"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 }
@@ -122,7 +122,7 @@ type InsertBarangParams struct {
 	NamaBarang string         `json:"nama_barang"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
 	Kategori   string         `json:"kategori"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 }
 
 func (q *Queries) InsertBarang(ctx context.Context, arg InsertBarangParams) (Barang, error) {
@@ -195,7 +195,7 @@ type ListBarangRow struct {
 	NamaBarang string         `json:"nama_barang"`
 	Kategori   string         `json:"kategori"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 }
@@ -263,7 +263,7 @@ type UpdateBarangParams struct {
 	NamaBarang string         `json:"nama_barang"`
 	Kategori   string         `json:"kategori"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 	Guid       string         `json:"guid"`
 }
 

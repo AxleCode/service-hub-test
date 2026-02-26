@@ -66,7 +66,7 @@ type Barang struct {
 	NamaBarang string         `json:"nama_barang"`
 	Kategori   string         `json:"kategori"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 	IsDeleted  bool           `json:"is_deleted"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`

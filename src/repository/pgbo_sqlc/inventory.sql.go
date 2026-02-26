@@ -60,14 +60,24 @@ SELECT
 FROM barang AS b
 WHERE 
     b.is_deleted = FALSE
-AND (
-    $1::text IS NULL
-    OR b.nama_barang ILIKE '%' || $1::text || '%'
-)
+    AND (CASE WHEN $1::bool THEN LOWER(nama_barang) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(kategori) LIKE LOWER('%' || $4 || '%') ELSE TRUE END)
 `
 
-func (q *Queries) CountListCountAllInventoryEachProduct(ctx context.Context, namaBarang string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countListCountAllInventoryEachProduct, namaBarang)
+type CountListCountAllInventoryEachProductParams struct {
+	SetNamaBarang bool           `json:"set_nama_barang"`
+	NamaBarang    sql.NullString `json:"nama_barang"`
+	SetKategori   bool           `json:"set_kategori"`
+	Kategori      sql.NullString `json:"kategori"`
+}
+
+func (q *Queries) CountListCountAllInventoryEachProduct(ctx context.Context, arg CountListCountAllInventoryEachProductParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countListCountAllInventoryEachProduct,
+		arg.SetNamaBarang,
+		arg.NamaBarang,
+		arg.SetKategori,
+		arg.Kategori,
+	)
 	var total_data int64
 	err := row.Scan(&total_data)
 	return total_data, err
@@ -78,7 +88,7 @@ SELECT
     COUNT(*) AS count
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN LOWER(barang_id) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN LOWER(barang_id) = LOWER($2) ELSE TRUE END)
     AND (CASE WHEN $3::bool THEN LOWER(guid) = LOWER($4) ELSE TRUE END)
     AND (CASE WHEN $5::bool THEN LOWER(keterangan) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
     AND (CASE WHEN $7::bool THEN LOWER(status) LIKE LOWER('%' || $8 || '%') ELSE TRUE END)
@@ -86,7 +96,7 @@ WHERE is_deleted = FALSE
 
 type CountListInventoryParams struct {
 	SetBarangID   bool           `json:"set_barang_id"`
-	BarangID      sql.NullString `json:"barang_id"`
+	BarangID      string         `json:"barang_id"`
 	SetGuid       bool           `json:"set_guid"`
 	Guid          string         `json:"guid"`
 	SetKeterangan bool           `json:"set_keterangan"`
@@ -227,8 +237,9 @@ LEFT JOIN inventory AS i
     AND i.is_deleted = FALSE
 WHERE 
     b.is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN b.nama_barang ILIKE '%' || $2::text || '%' ELSE TRUE END)
-    AND (CASE WHEN $3::bool THEN b.kategori ILIKE '%' || $4::text || '%' ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN LOWER(nama_barang) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $3::bool THEN LOWER(kategori) LIKE LOWER('%' || $4 || '%') ELSE TRUE END)
+
 GROUP BY 
     b.guid,
     b.kode_barang,
@@ -245,13 +256,13 @@ OFFSET $6
 `
 
 type ListCountAllInventoryEachProductParams struct {
-	SetNamaBarang bool        `json:"set_nama_barang"`
-	NamaBarang    string      `json:"nama_barang"`
-	SetKategori   bool        `json:"set_kategori"`
-	Kategori      string      `json:"kategori"`
-	OrderParam    interface{} `json:"order_param"`
-	OffsetPages   int32       `json:"offset_pages"`
-	LimitData     int32       `json:"limit_data"`
+	SetNamaBarang bool           `json:"set_nama_barang"`
+	NamaBarang    sql.NullString `json:"nama_barang"`
+	SetKategori   bool           `json:"set_kategori"`
+	Kategori      sql.NullString `json:"kategori"`
+	OrderParam    interface{}    `json:"order_param"`
+	OffsetPages   int32          `json:"offset_pages"`
+	LimitData     int32          `json:"limit_data"`
 }
 
 type ListCountAllInventoryEachProductRow struct {
@@ -260,7 +271,7 @@ type ListCountAllInventoryEachProductRow struct {
 	NamaBarang string         `json:"nama_barang"`
 	Kategori   string         `json:"kategori"`
 	Deskripsi  sql.NullString `json:"deskripsi"`
-	Harga      string         `json:"harga"`
+	Harga      int32          `json:"harga"`
 	TotalStok  int32          `json:"total_stok"`
 }
 
@@ -314,7 +325,7 @@ SELECT
     updated_at
 FROM inventory
 WHERE is_deleted = FALSE
-    AND (CASE WHEN $1::bool THEN LOWER(barang_id) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+    AND (CASE WHEN $1::bool THEN LOWER(barang_id) = LOWER($2) ELSE TRUE END)
     AND (CASE WHEN $3::bool THEN LOWER(guid) = LOWER($4) ELSE TRUE END)
     AND (CASE WHEN $5::bool THEN LOWER(status) LIKE LOWER('%' || $6 || '%') ELSE TRUE END)
 ORDER BY
@@ -327,7 +338,7 @@ OFFSET $8
 
 type ListInventoryParams struct {
 	SetBarangID bool           `json:"set_barang_id"`
-	BarangID    sql.NullString `json:"barang_id"`
+	BarangID    string         `json:"barang_id"`
 	SetGuid     bool           `json:"set_guid"`
 	Guid        string         `json:"guid"`
 	SetStatus   bool           `json:"set_status"`

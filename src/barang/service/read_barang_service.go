@@ -23,15 +23,6 @@ func (s *BarangService) GetBarang(ctx context.Context, key string) (
 		return
 	}
 
-	// response := payload.BarangResponse{
-	// 	Guid:       result.Guid,
-	// 	KodeBarang: result.KodeBarang,
-	// 	NamaBarang: result.NamaBarang,
-	// 	Deskripsi:  result.Deskripsi.String,
-	// 	Kategori:   result.Kategori,
-	// 	Harga:      result.Harga,
-	// }
-
 	return result, nil
 }
 
