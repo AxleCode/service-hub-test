@@ -156,3 +156,42 @@ WHERE
     b.is_deleted = FALSE
     AND (CASE WHEN @set_nama_barang::bool THEN LOWER(nama_barang) LIKE LOWER('%' || @nama_barang || '%') ELSE TRUE END)
     AND (CASE WHEN @set_kategori::bool THEN LOWER(kategori) LIKE LOWER('%' || @kategori || '%') ELSE TRUE END);
+
+-- name: StockItemsByCategory :many
+SELECT 
+    b.kategori,
+    COALESCE(
+        SUM(
+            CASE 
+                WHEN i.status = 'IN'  THEN i.jumlah
+                WHEN i.status = 'OUT' THEN -i.jumlah
+                ELSE 0
+            END
+        ), 
+    0)::int AS total_stok
+FROM barang AS b
+LEFT JOIN inventory AS i 
+    ON i.barang_id = b.guid
+    AND i.is_deleted = FALSE
+WHERE 
+    b.is_deleted = FALSE
+    AND (CASE WHEN @set_kategori::bool 
+        THEN LOWER(b.kategori) LIKE LOWER('%' || @kategori || '%') 
+        ELSE TRUE 
+    END)
+GROUP BY 
+    b.kategori
+ORDER BY
+    CASE WHEN @order_param = 'kategori ASC'  THEN b.kategori END ASC,
+    CASE WHEN @order_param = 'kategori DESC' THEN b.kategori END DESC,
+    b.kategori ASC
+LIMIT @limit_data
+OFFSET @offset_pages;
+
+-- name: CountStockItemsByCategory :one
+SELECT 
+    COUNT(DISTINCT b.kategori) AS total_data
+FROM barang AS b
+WHERE 
+    b.is_deleted = FALSE
+    AND (CASE WHEN @set_kategori::bool THEN LOWER(b.kategori) LIKE LOWER('%' || @kategori || '%') ELSE TRUE END);

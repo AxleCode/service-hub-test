@@ -1,0 +1,23 @@
+INSERT INTO inventory (guid, barang_id, jumlah, keterangan, status, is_deleted, created_at, updated_at)
+VALUES
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG001'), 100, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG001'), 25, 'Sold to customer', 'OUT', FALSE, NOW() - INTERVAL '8 days', NOW() - INTERVAL '8 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG001'), 50, 'Restock supplier', 'IN', FALSE, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG001'), 30, 'Sold marketplace', 'OUT', FALSE, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG002'), 120, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '9 days', NOW() - INTERVAL '9 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG002'), 40, 'Sold offline', 'OUT', FALSE, NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG002'), 60, 'Restock', 'IN', FALSE, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG003'), 80, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG003'), 20, 'Sold', 'OUT', FALSE, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG003'), 50, 'Restock', 'IN', FALSE, NOW() - INTERVAL '1 days', NOW() - INTERVAL '1 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG004'), 200, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '12 days', NOW() - INTERVAL '12 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG004'), 70, 'Sold', 'OUT', FALSE, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG005'), 50, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG005'), 10, 'Sold', 'OUT', FALSE, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG005'), 30, 'Restock', 'IN', FALSE, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG006'), 90, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '11 days', NOW() - INTERVAL '11 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG006'), 20, 'Sold', 'OUT', FALSE, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG007'), 75, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG007'), 15, 'Sold', 'OUT', FALSE, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG008'), 60, 'Initial stock', 'IN', FALSE, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
+(gen_random_uuid(), (SELECT guid FROM barang WHERE kode_barang = 'BRG008'), 25, 'Sold expired/damaged', 'OUT', FALSE, NOW() - INTERVAL '1 days', NOW() - INTERVAL '1 days');

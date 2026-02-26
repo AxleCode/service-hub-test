@@ -80,6 +80,21 @@ type ListCountAllInventoryFilterPayload struct {
 	Kategori   string `json:"kategori"`
 }
 
+type StockItemsByCategoryPayload struct {
+	Filter StockItemsByCategoryFilterPayload `json:"filter"`
+	Pagination
+}
+
+type StockItemsByCategoryFilterPayload struct {
+	SetKategori bool   `json:"set_kategori"`
+	Kategori   string `json:"kategori"`
+}
+
+type StockItemsByCategoryResponse struct {
+	Kategori   string `json:"kategori"`
+	TotalStock int `json:"total_stock"`
+}
+
 func (p *InsertInventoryPayload) Validate() (err error) {
 	// Validate Payload
 	if _, err = govalidator.ValidateStruct(p); err != nil {
@@ -99,6 +114,15 @@ func (p *ListInventoryPayload) Validate() (err error) {
 }
 
 func (p *UpdateInventoryPayload) Validate() (err error) {
+	// Validate Payload
+	if _, err = govalidator.ValidateStruct(p); err != nil {
+		err = errors.Wrapf(httpservice.ErrBadRequest, "bad request: %s", err.Error())
+		return
+	}
+	return
+}
+
+func (p *StockItemsByCategoryPayload) Validate() (err error){
 	// Validate Payload
 	if _, err = govalidator.ValidateStruct(p); err != nil {
 		err = errors.Wrapf(httpservice.ErrBadRequest, "bad request: %s", err.Error())
@@ -182,6 +206,19 @@ func (p *ListCountAllInventoryPayload) ToEntity() sqlc.ListCountAllInventoryEach
 	}
 }
 
+func (p *StockItemsByCategoryPayload) ToEntity() sqlc.StockItemsByCategoryParams {
+	return sqlc.StockItemsByCategoryParams{
+		SetKategori: p.Filter.SetKategori,
+		Kategori: sql.NullString{
+			String: p.Filter.Kategori,
+			Valid: true,
+		},
+		OrderParam: makeOrderParam(p.Order, p.Sort),
+		OffsetPages: makeOffset(p.Limit, p.Offset),
+		LimitData: limitWithDefault(p.Limit),
+	}
+}
+
 func ToPayloadListInventory(listData []sqlc.ListInventoryRow) (payload []*ReadInventory) {
 	payload = make([]*ReadInventory, len(listData))
 	for i, data := range listData {
@@ -227,6 +264,19 @@ func ToPayloadCountAllInventoryEachProduct(listData []sqlc.ListCountAllInventory
     }
 
     return
+}
+
+func ToPayloadStockItemsByCategory(listData []sqlc.StockItemsByCategoryRow) []*StockItemsByCategoryResponse {
+    payload := make([]*StockItemsByCategoryResponse, len(listData))
+
+    for i, data := range listData {
+        payload[i] = &StockItemsByCategoryResponse{
+            Kategori: data.Kategori,
+			TotalStock: int(data.TotalStok),
+        }
+    }
+
+    return payload
 }
 
 

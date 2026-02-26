@@ -94,12 +94,12 @@ func (s *InventoryService) CountAllStockProduct(ctx context.Context, request sql
 		return
 	}
 
-	log.FromCtx(ctx).Info("filter debug",
-		"set_nama_barang", request.SetNamaBarang,
-		"nama_barang", request.NamaBarang,
-		"set_kategori", request.SetKategori,
-		"kategori", request.Kategori,
-	)
+	// log.FromCtx(ctx).Info("filter debug",
+	// 	"set_nama_barang", request.SetNamaBarang,
+	// 	"nama_barang", request.NamaBarang,
+	// 	"set_kategori", request.SetKategori,
+	// 	"kategori", request.Kategori,
+	// )
 	// log.FromCtx(ctx).Info("list inventory", "data", listCountAllInventory)
 
 	return
@@ -117,6 +117,55 @@ func (s *InventoryService) getTotalCountAllInventory(
 		Kategori:      request.Kategori,
 	}
 	totalData, err := query.CountListCountAllInventoryEachProduct(
+		ctx,
+		countReq,
+	)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed get total count all inventory")
+		return 0, errors.WithStack(httpservice.ErrUnknownSource)
+	}
+
+	return totalData, nil
+}
+
+func (s *InventoryService) StockItemsByCategory(ctx context.Context, request sqlc.StockItemsByCategoryParams) (
+	listCountAllInventory []sqlc.StockItemsByCategoryRow, totalData int64, err error) {
+	query := sqlc.New(s.mainDB)
+
+	//Get Total Data
+	totalData, err = s.getTotalCountInventoryByCategory(ctx, query, request)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed get total count all inventory")
+		err = errors.WithStack(httpservice.ErrDataNotFound)
+		return
+	}
+
+	listCountAllInventory, err = query.StockItemsByCategory(ctx, request)
+	if err != nil {
+		log.FromCtx(ctx).Error(err, "failed count all stock product")
+		err = errors.WithStack(httpservice.ErrUnknownSource)
+		return
+	}
+
+	// log.FromCtx(ctx).Info("filter debug",
+	// 	"set_kategori", request.SetKategori,
+	// 	"kategori", request.Kategori,
+	// )
+	// log.FromCtx(ctx).Info("list inventory", "data", listCountAllInventory)
+
+	return
+}
+
+func (s *InventoryService) getTotalCountInventoryByCategory(
+		ctx context.Context,
+		query *sqlc.Queries,
+		request sqlc.StockItemsByCategoryParams,
+	) (int64, error) {
+	countReq := sqlc.CountStockItemsByCategoryParams{
+		SetKategori:   request.SetKategori,
+		Kategori:      request.Kategori,
+	}
+	totalData, err := query.CountStockItemsByCategory(
 		ctx,
 		countReq,
 	)

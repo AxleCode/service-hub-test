@@ -121,6 +121,27 @@ func (q *Queries) CountListInventory(ctx context.Context, arg CountListInventory
 	return count, err
 }
 
+const countStockItemsByCategory = `-- name: CountStockItemsByCategory :one
+SELECT 
+    COUNT(DISTINCT b.kategori) AS total_data
+FROM barang AS b
+WHERE 
+    b.is_deleted = FALSE
+    AND (CASE WHEN $1::bool THEN LOWER(b.kategori) LIKE LOWER('%' || $2 || '%') ELSE TRUE END)
+`
+
+type CountStockItemsByCategoryParams struct {
+	SetKategori bool           `json:"set_kategori"`
+	Kategori    sql.NullString `json:"kategori"`
+}
+
+func (q *Queries) CountStockItemsByCategory(ctx context.Context, arg CountStockItemsByCategoryParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countStockItemsByCategory, arg.SetKategori, arg.Kategori)
+	var total_data int64
+	err := row.Scan(&total_data)
+	return total_data, err
+}
+
 const getOneInventory = `-- name: GetOneInventory :one
 SELECT 
     guid,
@@ -386,6 +407,80 @@ func (q *Queries) ListInventory(ctx context.Context, arg ListInventoryParams) ([
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const stockItemsByCategory = `-- name: StockItemsByCategory :many
+SELECT 
+    b.kategori,
+    COALESCE(
+        SUM(
+            CASE 
+                WHEN i.status = 'IN'  THEN i.jumlah
+                WHEN i.status = 'OUT' THEN -i.jumlah
+                ELSE 0
+            END
+        ), 
+    0)::int AS total_stok
+FROM barang AS b
+LEFT JOIN inventory AS i 
+    ON i.barang_id = b.guid
+    AND i.is_deleted = FALSE
+WHERE 
+    b.is_deleted = FALSE
+    AND (CASE WHEN $1::bool 
+        THEN LOWER(b.kategori) LIKE LOWER('%' || $2 || '%') 
+        ELSE TRUE 
+    END)
+GROUP BY 
+    b.kategori
+ORDER BY
+    CASE WHEN $3 = 'kategori ASC'  THEN b.kategori END ASC,
+    CASE WHEN $3 = 'kategori DESC' THEN b.kategori END DESC,
+    b.kategori ASC
+LIMIT $5
+OFFSET $4
+`
+
+type StockItemsByCategoryParams struct {
+	SetKategori bool           `json:"set_kategori"`
+	Kategori    sql.NullString `json:"kategori"`
+	OrderParam  interface{}    `json:"order_param"`
+	OffsetPages int32          `json:"offset_pages"`
+	LimitData   int32          `json:"limit_data"`
+}
+
+type StockItemsByCategoryRow struct {
+	Kategori  string `json:"kategori"`
+	TotalStok int32  `json:"total_stok"`
+}
+
+func (q *Queries) StockItemsByCategory(ctx context.Context, arg StockItemsByCategoryParams) ([]StockItemsByCategoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, stockItemsByCategory,
+		arg.SetKategori,
+		arg.Kategori,
+		arg.OrderParam,
+		arg.OffsetPages,
+		arg.LimitData,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []StockItemsByCategoryRow
+	for rows.Next() {
+		var i StockItemsByCategoryRow
+		if err := rows.Scan(&i.Kategori, &i.TotalStok); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
